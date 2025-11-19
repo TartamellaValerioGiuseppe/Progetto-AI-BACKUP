@@ -5,3 +5,4 @@
 5) al posto di utente ci deve essere l'user corrente del computer
 6) Cambiare l'icona
 7) creare l'.exe
+8) Migliorare lo scanner
