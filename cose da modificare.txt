@@ -1,5 +1,5 @@
 1) più user friendly
-2) la scritta cronologia chat deve cambiare colore (opposto al colore del tema) (fatto)
+2) la scritta cronologia chat deve cambiare colore (opposto al colore del tema) (fatto, spero)
 3) salvare la cronologia delle risposte nella chat
 4) levare la "AI" alla risposta
 5) al posto di "utente" ci deve essere l'user corrente del computer
@@ -8,4 +8,5 @@
 8) Rifare la classe antivirus in modo tale che l'user possa scegliere che antivirus l'ai può utilizzare tra quelle disponibili sul pc
 9) Creare l'ai con llama
 (le risposte e il fatto dell'human readable si sistemerà dopo aver creato l'ai)
+
 
