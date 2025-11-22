@@ -3,6 +3,7 @@ package Application;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -35,8 +36,10 @@ public class App extends Application {
     private AIAnalyzer aiAnalyzer;
     
     private BorderPane root;
+	private Node cronologiaLabel;
 
     private static class Chat {
+    	private Label cronologiaLabel;
         String name;
         StringBuilder messages = new StringBuilder();
 
@@ -77,7 +80,10 @@ public class App extends Application {
         Button themeButton = new Button("Cambia Tema");
         themeButton.setOnAction(e -> toggleTheme());
 
-        VBox leftPanel = new VBox(10, new Label("Cronologia Chat"), chatHistoryList, newChatButton, themeButton);
+        Label cronologiaLabel = new Label("Cronologia Chat");
+
+        VBox leftPanel = new VBox(10, cronologiaLabel, chatHistoryList, newChatButton, themeButton);
+
         leftPanel.setPadding(new Insets(0,10,0,0));
         leftPanel.setPrefWidth(200);
 
@@ -136,7 +142,9 @@ public class App extends Application {
 
     // Metodo che invia una domanda all'AI e gestisce le scansioni
     private void processAIQuestion(String question) {
-        appendOutput("Utente: " + question);
+    	String currentUser = System.getProperty("user.name");
+    	appendOutput(currentUser + ": " + question);
+
 
         new Thread(() -> {
             try {
@@ -169,7 +177,9 @@ public class App extends Application {
             if (currentIndex < 0) return;
 
             Chat chat = chats.get(currentIndex);
-            chat.addMessage("Utente: " + userInput);
+            String currentUser = System.getProperty("user.name");
+            chat.addMessage(currentUser + ": " + userInput);
+
 
             processAIQuestion(userInput); // invia domanda all'AI
 
@@ -198,20 +208,33 @@ public class App extends Application {
     }
 
     private void applyTheme() {
-        if (darkMode) {
+    	if (darkMode) {
+            // Tema scuro
             root.setStyle("-fx-background-color: #2e2e2e;");
             outputArea.setStyle("-fx-control-inner-background: #1e1e1e; -fx-text-fill: #ffffff;");
             inputField.setStyle("-fx-control-inner-background: #3e3e3e; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #bbbbbb;");
             chatHistoryList.setStyle("-fx-control-inner-background: #3e3e3e; -fx-text-fill: #ffffff;");
             headerLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffffff; -fx-background-color: #3e3e3e; -fx-padding: 10px;");
-            for (Button btn : getAllButtons()) btn.setStyle("-fx-background-color: #555555; -fx-text-fill: #ffffff;");
+
+            // Colore inverso di "Cronologia Chat" → chiaro
+            cronologiaLabel.setStyle("-fx-text-fill: #ffffff;");
+
+            for (Button btn : getAllButtons())
+                btn.setStyle("-fx-background-color: #555555; -fx-text-fill: #ffffff;");
+
         } else {
+            // Tema chiaro
             root.setStyle("-fx-background-color: #ffffff;");
             outputArea.setStyle("-fx-control-inner-background: #f9f9f9; -fx-text-fill: #000000;");
             inputField.setStyle("-fx-control-inner-background: #ffffff; -fx-text-fill: #000000; -fx-prompt-text-fill: #666666;");
             chatHistoryList.setStyle("-fx-control-inner-background: #ffffff; -fx-text-fill: #000000;");
             headerLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #000000; -fx-background-color: #dddddd; -fx-padding: 10px;");
-            for (Button btn : getAllButtons()) btn.setStyle("-fx-background-color: #dddddd; -fx-text-fill: #000000;");
+
+            // Colore inverso di "Cronologia Chat" → scuro
+            cronologiaLabel.setStyle("-fx-text-fill: #000000;");
+
+            for (Button btn : getAllButtons())
+                btn.setStyle("-fx-background-color: #dddddd; -fx-text-fill: #000000;");
         }
     }
 
