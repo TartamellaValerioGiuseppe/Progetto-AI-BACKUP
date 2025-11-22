@@ -32,27 +32,34 @@ public class AntivirusScanner {
      * @return percorso dell'eseguibile o null se non trovato
      */
     private String findClamScanExecutable() {
-        try {
-            ProcessBuilder testPb = new ProcessBuilder("clamscan", "--version");
-            testPb.redirectErrorStream(true);
-            Process testProcess = testPb.start();
-            testProcess.waitFor();
-            return "clamscan"; // eseguibile trovato nel PATH
-        } catch (Exception ignored) {
-        }
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+	    try {
+	        // Su Linux/macOS l'eseguibile è "clamscan"
+	        String testCmd = isWindows ? "clamscan.exe" : "clamscan";
+	        ProcessBuilder testPb = new ProcessBuilder(testCmd, "--version");
+	        testPb.redirectErrorStream(true);
+	        Process testProcess = testPb.start();
+	        
+		        if (testProcess.waitFor() == 0) {
+		            return testCmd;
+		        }
+		    } catch (Exception ignored) {
+		    }
 
-        // Percorsi comuni su Windows
-        String[] commonPaths = {
-            "C:\\Program Files\\ClamAV\\clamscan.exe",
-            "C:\\Program Files (x86)\\ClamAV\\clamscan.exe"
-        };
-
-        for (String path : commonPaths) {
-            File f = new File(path);
-            if (f.exists() && f.isFile()) return f.getAbsolutePath();
-        }
-
-        return null;
+	    if (isWindows) {
+	        // Percorsi comuni su Windows
+	        String[] commonPaths = {
+	            "C:\\Program Files\\ClamAV\\clamscan.exe",
+	            "C:\\Program Files (x86)\\ClamAV\\clamscan.exe"
+	        };
+	
+	        for (String path : commonPaths) {
+	            File f = new File(path);
+	            if (f.exists() && f.isFile()) return f.getAbsolutePath();
+	        }
+	    }
+        return null; // non trovato
+	    
     }
 
     /**
@@ -74,29 +81,41 @@ public class AntivirusScanner {
         try {
             // Esegui il comando ClamAV
             ProcessBuilder pb = new ProcessBuilder(clamscanExec, "-r", path);
-            pb.redirectErrorStream(true);
+            pb.redirectErrorStream(true); // merge stdout+stderr
             Process process = pb.start();
 
-            // Leggi l'output di ClamAV
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             StringBuilder output = new StringBuilder();
-            String line;
 
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-                if (line.contains("FOUND")) {
-                    result.infectedFiles.add(line);
+            // Leggi l'output in modo sicuro e chiudi lo stream automaticamente
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+
+                    // Individua linee tipo:
+                    // C:\file\virus.exe: Win.Trojan FOUND
+                    if (line.matches("^.*:.* FOUND$")) {
+                        String filePath = line.substring(0, line.indexOf(":")).trim();
+                        result.infectedFiles.add(filePath);
+                    }
                 }
             }
 
+            // Attendi che il processo termini
             process.waitFor();
             result.rawOutput = output.toString();
             result.infected = !result.infectedFiles.isEmpty();
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             result.rawOutput = "Errore durante la scansione: " + e.getMessage();
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            result.rawOutput = "Scansione interrotta: " + e.getMessage();
         }
+
+
 
         return result;
     }
