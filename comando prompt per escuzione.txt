@@ -1,0 +1,5 @@
+mvn clean javafx:run
+(ovviamente bisogna essere nella directory del progetto progetto IA\progetto\AI_System_Analyzer)
+Per modificare il programma su eclipse Help -> Eclipse marketplace -> Enhanced Class Decompiler -> Install
+Se dopo aver installato e avviato ancora non vedi il codice sorgente ma quello bytecode:
+Right Click su file.class -> Open with -> Class Decompiler Viewer
